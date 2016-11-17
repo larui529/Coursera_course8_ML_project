@@ -2,7 +2,7 @@
 title: "Course8_Project"
 author: "Rui La"
 date: "11/15/2016"
-output: html_document
+output: md_document
 ---
 
 ##Prediction Assignment Writeupless 
