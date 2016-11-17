@@ -1,0 +1,101 @@
+---
+title: "Course8_Project"
+author: "Rui La"
+date: "11/15/2016"
+output: html_document
+---
+
+##Prediction Assignment Writeupless 
+Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+
+#Load data first
+```{r,cache=TRUE}
+getwd()
+pml_train = read.csv("./pml-training.csv")
+pml_test = read.csv("./pml-testing.csv")
+library(caret)
+```
+#check dimension and names of variables
+```{r,cache=TRUE}
+names(pml_train)
+dim(pml_train)
+table(pml_train$classe)
+```
+
+#preprocessing 
+First, I partitioned the training set
+
+
+#clear up near zero variance, missing values and descriptive fields.
+
+
+```{r,cache=TRUE}
+training <- pml_train[, 6:dim(pml_train)[2]]
+
+threshold = dim(training)[1]*0.8
+judge90 <- function (x) {
+        sum(is.na(x))>threshold ||sum(x == "") > threshold
+}
+goodColumns = !apply(training, 2, judge90)
+training = training[,goodColumns]
+badCol = nearZeroVar(training, saveMetrics = TRUE)
+training = training [, badCol$nzv == FALSE]
+training$classe = factor(training$classe)
+```
+3. train with different model
+```{r,cache=TRUE}
+inTrain = createDataPartition(training$classe, p = 0.5)[[1]]
+trainset = training[inTrain,]
+crossVset = training[-inTrain,]
+
+inTrain = createDataPartition(crossVset$classe, p = 0.7)[[1]]
+crossTrain = crossVset [inTrain,]
+crossTest = crossVset[-inTrain,]
+
+testing = pml_test[, 6:dim(pml_test)[2]]
+testing = testing[, goodColumns]
+testing$classe = NA
+testing = testing [, badCol$nzv == FALSE]
+#mod1 = train(classe~., data = training, method = "rf")
+
+#pred1 = predict(mod1, testing)
+```
+
+
+Now we can train with different model. randomForest() is faster than train("rf")
+Don't know why. train(method = "rf") takes forever to run.
+```{r,cache=TRUE}
+library(randomForest)
+mod1 =randomForest(classe~., data = training, method = "class")
+pre1 = predict (mod1, newdata = crossTrain, type = "class")
+```
+```{r}
+acc1 = caret::confusionMatrix(pre1, crossTrain$classe)
+acc1
+
+```
+
+From the confusionMatrix result we can see the prediction is quite right. Now let's look at "rpart" method
+
+```{r,cache=TRUE}
+library(rpart)
+library(rpart.plot)
+mod2 = rpart(classe ~., data = training, method = "class")
+pre2 = predict (mod2, crossTrain, type = "class")
+acc2 = caret:: confusionMatrix(pre2, crossTrain$classe)
+rpart.plot(mod2, main = "Classification Tree", extra = 102, under = TRUE, faclen = 0)
+acc2
+```
+
+Now we cansee the rpart result is not accurate. The accuracy is only 74%. So we will choose "rf" method.
+
+For the final testing data
+
+```{r, cache=TRUE}
+# predict final outcome levels on the original TESTING data using our mod1 algorithm
+finalpre = predict(mod1, testing, type = "class")
+finalpre
+```
