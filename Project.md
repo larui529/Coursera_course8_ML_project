@@ -151,7 +151,7 @@ clear up near zero variance, missing values and descriptive fields.
     training = training [, badCol$nzv == FALSE]
     training$classe = factor(training$classe)
 
-1.  train with different model
+1.  partitioning the training data set to allow cross-validation
 
 <!-- -->
 
@@ -190,7 +190,14 @@ train("rf") Don't know why. train(method = "rf") takes forever to run.
     mod1 =randomForest(classe~., data = training, method = "class")
     pre1 = predict (mod1, newdata = crossTrain, type = "class")
 
-    acc1 = caret::confusionMatrix(pre1, crossTrain$classe)
+    library(randomForest)
+
+    ## randomForest 4.6-12
+
+    ## Type rfNews() to see new features/changes/bug fixes.
+
+    pre11 = predict(mod1,crossVset, type = "class" )
+    acc1 = caret::confusionMatrix(pre11, crossVset$classe)
     acc1
 
     ## $positive
@@ -199,15 +206,15 @@ train("rf") Don't know why. train(method = "rf") takes forever to run.
     ## $table
     ##           Reference
     ## Prediction    A    B    C    D    E
-    ##          A 1953    0    0    0    0
-    ##          B    0 1329    0    0    0
-    ##          C    0    0 1198    0    0
-    ##          D    0    0    0 1126    0
-    ##          E    0    0    0    0 1263
+    ##          A 2790    0    0    0    0
+    ##          B    0 1898    0    0    0
+    ##          C    0    0 1711    0    0
+    ##          D    0    0    0 1608    0
+    ##          E    0    0    0    0 1803
     ## 
     ## $overall
     ##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
-    ##      1.0000000      1.0000000      0.9994631      1.0000000      0.2843209 
+    ##      1.0000000      1.0000000      0.9996240      1.0000000      0.2844037 
     ## AccuracyPValue  McnemarPValue 
     ##      0.0000000            NaN 
     ## 
@@ -219,11 +226,11 @@ train("rf") Don't know why. train(method = "rf") takes forever to run.
     ## Class: D           1           1              1              1         1
     ## Class: E           1           1              1              1         1
     ##          Recall F1 Prevalence Detection Rate Detection Prevalence
-    ## Class: A      1  1  0.2843209      0.2843209            0.2843209
-    ## Class: B      1  1  0.1934779      0.1934779            0.1934779
-    ## Class: C      1  1  0.1744068      0.1744068            0.1744068
-    ## Class: D      1  1  0.1639249      0.1639249            0.1639249
-    ## Class: E      1  1  0.1838696      0.1838696            0.1838696
+    ## Class: A      1  1  0.2844037      0.2844037            0.2844037
+    ## Class: B      1  1  0.1934760      0.1934760            0.1934760
+    ## Class: C      1  1  0.1744139      0.1744139            0.1744139
+    ## Class: D      1  1  0.1639144      0.1639144            0.1639144
+    ## Class: E      1  1  0.1837920      0.1837920            0.1837920
     ##          Balanced Accuracy
     ## Class: A                 1
     ## Class: B                 1
@@ -303,6 +310,15 @@ right. Now let's look at "rpart" method
     ## 
     ## attr(,"class")
     ## [1] "confusionMatrix"
+
+As expected, Random Forest algorithm performed better than Rpart.
+Accuracy for Random Forest model was 1 compared to 0.74 for rpart model.
+The random Forest model is choosen. The accuracy of the model is 1. The
+expected out-of-sample error is estimated at 0. The expected
+out-of-sample error is calculated as 1 - accuracy for predictions made
+against the cross-validation set. Our Test data set comprises 20 cases.
+With an accuracy above 99% on our cross-validation data, we can expect
+that very few, or none, of the test samples will be missclassified.
 
 Now we cansee the rpart result is not accurate. The accuracy is only
 74%. So we will choose "rf" method.

@@ -2,7 +2,7 @@
 title: "Course8_Project"
 author: "Rui La"
 date: "11/15/2016"
-output: md_document
+output: html_document
 ---
 
 ##Prediction Assignment Writeupless 
@@ -45,7 +45,7 @@ badCol = nearZeroVar(training, saveMetrics = TRUE)
 training = training [, badCol$nzv == FALSE]
 training$classe = factor(training$classe)
 ```
-3. train with different model
+3. partitioning the training data set to allow cross-validation
 ```{r,cache=TRUE}
 inTrain = createDataPartition(training$classe, p = 0.5)[[1]]
 trainset = training[inTrain,]
@@ -73,7 +73,9 @@ mod1 =randomForest(classe~., data = training, method = "class")
 pre1 = predict (mod1, newdata = crossTrain, type = "class")
 ```
 ```{r}
-acc1 = caret::confusionMatrix(pre1, crossTrain$classe)
+library(randomForest)
+pre11 = predict(mod1,crossVset, type = "class" )
+acc1 = caret::confusionMatrix(pre11, crossVset$classe)
 acc1
 
 ```
@@ -89,6 +91,10 @@ acc2 = caret:: confusionMatrix(pre2, crossTrain$classe)
 rpart.plot(mod2, main = "Classification Tree", extra = 102, under = TRUE, faclen = 0)
 acc2
 ```
+
+As expected, Random Forest algorithm performed better than Rpart.
+Accuracy for Random Forest model was 1  compared to 0.74  for rpart model. The random Forest model is choosen. The accuracy of the model is 1. The expected out-of-sample error is estimated at 0. The expected out-of-sample error is calculated as 1 - accuracy for predictions made against the cross-validation set. Our Test data set comprises 20 cases. With an accuracy above 99% on our cross-validation data, we can expect that very few, or none, of the test samples will be missclassified.
+
 
 Now we cansee the rpart result is not accurate. The accuracy is only 74%. So we will choose "rf" method.
 

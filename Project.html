@@ -244,7 +244,7 @@ badCol = nearZeroVar(training, saveMetrics = TRUE)
 training = training [, badCol$nzv == FALSE]
 training$classe = factor(training$classe)</code></pre>
 <ol start="3" style="list-style-type: decimal">
-<li>train with different model</li>
+<li>partitioning the training data set to allow cross-validation</li>
 </ol>
 <pre class="r"><code>inTrain = createDataPartition(training$classe, p = 0.5)[[1]]
 trainset = training[inTrain,]
@@ -272,7 +272,11 @@ testing = testing [, badCol$nzv == FALSE]
 ##     margin</code></pre>
 <pre class="r"><code>mod1 =randomForest(classe~., data = training, method = &quot;class&quot;)
 pre1 = predict (mod1, newdata = crossTrain, type = &quot;class&quot;)</code></pre>
-<pre class="r"><code>acc1 = caret::confusionMatrix(pre1, crossTrain$classe)
+<pre class="r"><code>library(randomForest)</code></pre>
+<pre><code>## randomForest 4.6-12</code></pre>
+<pre><code>## Type rfNews() to see new features/changes/bug fixes.</code></pre>
+<pre class="r"><code>pre11 = predict(mod1,crossVset, type = &quot;class&quot; )
+acc1 = caret::confusionMatrix(pre11, crossVset$classe)
 acc1</code></pre>
 <pre><code>## $positive
 ## NULL
@@ -280,15 +284,15 @@ acc1</code></pre>
 ## $table
 ##           Reference
 ## Prediction    A    B    C    D    E
-##          A 1953    0    0    0    0
-##          B    0 1329    0    0    0
-##          C    0    0 1198    0    0
-##          D    0    0    0 1126    0
-##          E    0    0    0    0 1263
+##          A 2790    0    0    0    0
+##          B    0 1898    0    0    0
+##          C    0    0 1711    0    0
+##          D    0    0    0 1608    0
+##          E    0    0    0    0 1803
 ## 
 ## $overall
 ##       Accuracy          Kappa  AccuracyLower  AccuracyUpper   AccuracyNull 
-##      1.0000000      1.0000000      0.9994631      1.0000000      0.2843209 
+##      1.0000000      1.0000000      0.9996240      1.0000000      0.2844037 
 ## AccuracyPValue  McnemarPValue 
 ##      0.0000000            NaN 
 ## 
@@ -300,11 +304,11 @@ acc1</code></pre>
 ## Class: D           1           1              1              1         1
 ## Class: E           1           1              1              1         1
 ##          Recall F1 Prevalence Detection Rate Detection Prevalence
-## Class: A      1  1  0.2843209      0.2843209            0.2843209
-## Class: B      1  1  0.1934779      0.1934779            0.1934779
-## Class: C      1  1  0.1744068      0.1744068            0.1744068
-## Class: D      1  1  0.1639249      0.1639249            0.1639249
-## Class: E      1  1  0.1838696      0.1838696            0.1838696
+## Class: A      1  1  0.2844037      0.2844037            0.2844037
+## Class: B      1  1  0.1934760      0.1934760            0.1934760
+## Class: C      1  1  0.1744139      0.1744139            0.1744139
+## Class: D      1  1  0.1639144      0.1639144            0.1639144
+## Class: E      1  1  0.1837920      0.1837920            0.1837920
 ##          Balanced Accuracy
 ## Class: A                 1
 ## Class: B                 1
@@ -376,6 +380,7 @@ rpart.plot(mod2, main = &quot;Classification Tree&quot;, extra = 102, under = TR
 ## 
 ## attr(,&quot;class&quot;)
 ## [1] &quot;confusionMatrix&quot;</code></pre>
+<p>As expected, Random Forest algorithm performed better than Rpart. Accuracy for Random Forest model was 1 compared to 0.74 for rpart model. The random Forest model is choosen. The accuracy of the model is 1. The expected out-of-sample error is estimated at 0. The expected out-of-sample error is calculated as 1 - accuracy for predictions made against the cross-validation set. Our Test data set comprises 20 cases. With an accuracy above 99% on our cross-validation data, we can expect that very few, or none, of the test samples will be missclassified.</p>
 <p>Now we cansee the rpart result is not accurate. The accuracy is only 74%. So we will choose “rf” method.</p>
 <p>For the final testing data</p>
 <pre class="r"><code># predict final outcome levels on the original TESTING data using our mod1 algorithm
